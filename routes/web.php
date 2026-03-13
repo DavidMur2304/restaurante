@@ -28,6 +28,8 @@ Route::middleware('auth')->prefix('panel')->name('waiter.')->group(function () {
     Route::post('/comanda', [OrderController::class, 'store'])->name('order.store');
     Route::patch('/comanda/{order}/estado', [OrderController::class, 'updateStatus'])->name('order.status');
     Route::post('/mesa/liberar', [OrderController::class, 'freeTable'])->name('table.free');
+    Route::delete('/reserva/{reservation}', [ReservationController::class, 'destroy'])->name('reservation.destroy');
+    Route::post('/reserva/{reservation}/mesa', [ReservationController::class, 'assignTable'])->name('reservation.assign');
 });
 
 // Redirect /dashboard to waiter panel

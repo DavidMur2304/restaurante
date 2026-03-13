@@ -138,7 +138,7 @@
             <div class="bg-white rounded-xl p-5 border border-stone-200 text-center">
                 <svg class="w-7 h-7 text-amber-700 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 <p class="font-semibold text-stone-800 text-sm">Horario</p>
-                <p class="text-stone-500 text-sm">Mar–Dom 13–23h</p>
+                <p class="text-stone-500 text-sm">Mar–Jue 13–22h · Vie–Sáb 12–01h · Dom 13–21h</p>
             </div>
             <div class="bg-white rounded-xl p-5 border border-stone-200 text-center">
                 <svg class="w-7 h-7 text-amber-700 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>

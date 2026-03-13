@@ -58,7 +58,7 @@
                     <div class="text-sm text-stone-500 space-y-1">
                         <div class="flex justify-between"><span>Lunes</span><span class="text-red-500 font-medium">Cerrado</span></div>
                         <div class="flex justify-between"><span>Martes – Jueves</span><span>13:00 – 22:00</span></div>
-                        <div class="flex justify-between"><span>Viernes – Sábado</span><span>13:00 – 23:30</span></div>
+                        <div class="flex justify-between"><span>Viernes – Sábado</span><span>12:00 – 01:00</span></div>
                         <div class="flex justify-between"><span>Domingo</span><span>13:00 – 21:00</span></div>
                     </div>
                 </div>

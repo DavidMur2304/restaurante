@@ -5,18 +5,24 @@ namespace App\Http\Controllers;
 use App\Models\Table;
 use App\Models\MenuCategory;
 use App\Models\Order;
+use App\Models\Reservation;
+use Carbon\Carbon;
 
 class WaiterController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
-
     public function dashboard()
     {
         $tables = Table::orderBy('location')->orderBy('number')->get()->groupBy('location');
-        return view('waiter.dashboard', compact('tables'));
+
+        $todayReservations = Reservation::whereDate('date', Carbon::today())
+            ->orderBy('time')
+            ->get();
+
+        $reservedTableIds = $todayReservations->whereNotNull('table_id')->pluck('table_id')->toArray();
+
+        $freeTables = Table::where('status', 'free')->orderBy('location')->orderBy('number')->get();
+
+        return view('waiter.dashboard', compact('tables', 'todayReservations', 'reservedTableIds', 'freeTables'));
     }
 
     public function tableDetail($id)

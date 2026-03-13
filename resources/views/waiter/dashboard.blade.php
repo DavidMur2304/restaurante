@@ -33,7 +33,7 @@
         $allTables = $tables->flatten();
         $free = $allTables->where('status', 'free')->count();
         $occupied = $allTables->where('status', 'occupied')->count();
-        $reserved = $allTables->where('status', 'reserved')->count();
+        $reserved = $allTables->where('status', 'reserved')->count() + $todayReservations->count();
         $total = $allTables->count();
     @endphp
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
@@ -63,9 +63,10 @@
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             @foreach($tables[$key] as $table)
             @php
-                $isFree = $table->status === 'free';
+                $hasReservationToday = in_array($table->id, $reservedTableIds);
+                $isFree = $table->status === 'free' && !$hasReservationToday;
                 $isOccupied = $table->status === 'occupied';
-                $isReserved = $table->status === 'reserved';
+                $isReserved = $table->status === 'reserved' || $hasReservationToday;
                 $borderColor = $isFree ? 'border-emerald-600' : ($isOccupied ? 'border-red-600' : 'border-amber-500');
                 $bgColor = $isFree ? 'bg-emerald-950/50' : ($isOccupied ? 'bg-red-950/50' : 'bg-amber-950/50');
                 $dotColor = $isFree ? 'bg-emerald-500' : ($isOccupied ? 'bg-red-500' : 'bg-amber-500');
@@ -91,6 +92,88 @@
     </div>
     @endif
     @endforeach
+
+    {{-- Today's reservations --}}
+    <div class="mt-10" x-data="reservationsApp()">
+        <h2 class="text-lg font-semibold text-gray-200 mb-4">📅 Reservas de Hoy</h2>
+        @if($todayReservations->isEmpty())
+        <div class="bg-gray-800 rounded-xl p-8 text-center border border-gray-700">
+            <p class="text-gray-400">No hay reservas para hoy.</p>
+        </div>
+        @else
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            @foreach($todayReservations as $res)
+            @php
+                $locLabel = match($res->location) { 'bar' => '🍻 Bar', 'room' => '🕯️ Salón', 'restaurant' => '🍽️ Restaurante', default => $res->location };
+            @endphp
+            <div class="bg-gray-800 border border-amber-800/50 rounded-xl p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <span class="text-white font-bold">{{ $res->name }}</span>
+                        <span class="ml-2 text-xs bg-amber-900/60 text-amber-300 px-2 py-0.5 rounded-full">{{ $locLabel }}</span>
+                    </div>
+                    <span class="text-amber-400 font-semibold text-sm">{{ \Carbon\Carbon::parse($res->time)->format('H:i') }}</span>
+                </div>
+                <div class="flex items-center gap-4 text-sm text-gray-400 mb-3">
+                    <span>👥 {{ $res->guests }} pers.</span>
+                    <span>📞 {{ $res->phone }}</span>
+                </div>
+                @if($res->table_id)
+                <p class="text-xs text-emerald-400 mb-3">✅ Mesa asignada: {{ $res->table->number ?? '—' }}</p>
+                @endif
+                @if($res->notes)
+                <p class="text-xs text-gray-500 mb-3 italic">{{ $res->notes }}</p>
+                @endif
+                <div class="flex gap-2 pt-3 border-t border-gray-700">
+                    @if(!$res->table_id)
+                    <button @click="openAssign({{ $res->id }}, '{{ addslashes($res->name) }}')"
+                        class="flex-1 bg-amber-700 hover:bg-amber-600 text-white text-xs font-medium py-2 px-3 rounded-lg transition-colors">
+                        Asignar Mesa
+                    </button>
+                    @endif
+                    <button @click="deleteReservation({{ $res->id }})"
+                        class="flex-1 bg-red-900/60 hover:bg-red-800 text-red-300 text-xs font-medium py-2 px-3 rounded-lg transition-colors">
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+            @endforeach
+        </div>
+        @endif
+
+        {{-- Modal asignar mesa --}}
+        <div x-show="showModal" x-cloak
+            class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+            <div class="bg-gray-800 rounded-2xl border border-gray-700 w-full max-w-md p-6">
+                <h3 class="text-white font-bold text-lg mb-1">Asignar Mesa</h3>
+                <p class="text-gray-400 text-sm mb-5">Reserva de <span class="text-amber-400 font-medium" x-text="selectedName"></span></p>
+                <div class="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto mb-5">
+                    @foreach($freeTables as $t)
+                    @php
+                        $locIcon = match($t->location) { 'bar' => '🍻', 'room' => '🕯️', 'restaurant' => '🍽️', default => '' };
+                    @endphp
+                    <button @click="selectedTable = {{ $t->id }}"
+                        :class="selectedTable === {{ $t->id }} ? 'border-amber-500 bg-amber-900/40 text-amber-300' : 'border-gray-600 bg-gray-700 text-gray-300 hover:border-amber-500/50'"
+                        class="border-2 rounded-xl p-3 text-center transition-all">
+                        <p class="font-bold text-base">{{ $t->number }}</p>
+                        <p class="text-xs opacity-70">{{ $locIcon }} {{ $t->capacity }}p</p>
+                    </button>
+                    @endforeach
+                </div>
+                <div class="flex gap-3">
+                    <button @click="showModal = false"
+                        class="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 font-medium py-2.5 rounded-lg transition-colors">
+                        Cancelar
+                    </button>
+                    <button @click="confirmAssign()"
+                        :disabled="!selectedTable"
+                        class="flex-1 bg-amber-700 hover:bg-amber-600 disabled:opacity-40 text-white font-bold py-2.5 rounded-lg transition-colors">
+                        Confirmar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     {{-- Active orders --}}
     <div class="mt-10">
@@ -144,8 +227,52 @@
 
 @push('scripts')
 <script>
-    // Auto refresh every 30 seconds
     setTimeout(() => location.reload(), 30000);
+
+    function reservationsApp() {
+        return {
+            showModal: false,
+            selectedReservationId: null,
+            selectedName: '',
+            selectedTable: null,
+
+            openAssign(reservationId, name) {
+                this.selectedReservationId = reservationId;
+                this.selectedName = name;
+                this.selectedTable = null;
+                this.showModal = true;
+            },
+
+            async confirmAssign() {
+                if (!this.selectedTable) return;
+                const url = '{{ url("panel/reserva") }}/' + this.selectedReservationId + '/mesa';
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({ table_id: this.selectedTable }),
+                });
+                const data = await res.json();
+                if (data.success) location.reload();
+            },
+
+            async deleteReservation(reservationId) {
+                if (!confirm('¿Eliminar esta reserva?')) return;
+                const url = '{{ url("panel/reserva") }}/' + reservationId;
+                const res = await fetch(url, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                });
+                const data = await res.json();
+                if (data.success) location.reload();
+            },
+        };
+    }
 </script>
 @endpush
 

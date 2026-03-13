@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Reservation;
+use App\Models\Table;
 use Illuminate\Http\Request;
 
 class ReservationController extends Controller
@@ -10,6 +11,23 @@ class ReservationController extends Controller
     public function create()
     {
         return view('public.reservation');
+    }
+
+    public function destroy(Reservation $reservation)
+    {
+        $reservation->delete();
+        return response()->json(['success' => true]);
+    }
+
+    public function assignTable(Request $request, Reservation $reservation)
+    {
+        $request->validate(['table_id' => 'required|exists:tables,id']);
+
+        $table = Table::findOrFail($request->table_id);
+        $reservation->update(['table_id' => $table->id, 'status' => 'confirmed']);
+        $table->update(['status' => 'reserved']);
+
+        return response()->json(['success' => true]);
     }
 
     public function store(Request $request)

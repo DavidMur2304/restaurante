@@ -24,6 +24,14 @@ php artisan db:seed --force
 
 Con MAMP: **http://localhost:8888/restaurante/public**
 
+## Panel de Camareros
+
+| Sección | URL |
+|---------|-----|
+| Login | /login |
+| Panel de Mesas | /panel |
+| Detalle Mesa | /panel/mesa/{id} |
+
 ## Credenciales de Camareros
 
 | Usuario | Email | Contraseña |
@@ -41,14 +49,6 @@ Con MAMP: **http://localhost:8888/restaurante/public**
 | Espacios | /espacios |
 | Reservas | /reservas |
 | Contacto | /contacto |
-
-## Panel de Camareros
-
-| Sección | URL |
-|---------|-----|
-| Login | /login |
-| Panel de Mesas | /panel |
-| Detalle Mesa | /panel/mesa/{id} |
 
 ## La Carta
 - **10 Entrantes**
