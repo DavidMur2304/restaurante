@@ -23,7 +23,7 @@
                 <span class="text-gray-500 text-sm">{{ $table->location_label }} · {{ $table->capacity }} personas</span>
             </div>
         </div>
-        @if($table->status === 'occupied')
+        @if(in_array($table->status, ['occupied', 'reserved']))
         <button onclick="if(confirm('¿Liberar la mesa?')) freeTable({{ $table->id }})"
             class="bg-gray-700 hover:bg-gray-600 text-white text-sm px-4 py-2 rounded-lg transition-colors">
             Liberar Mesa
